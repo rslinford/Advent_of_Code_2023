@@ -1,4 +1,6 @@
+import math
 import unittest
+from dataclasses import dataclass, field
 
 
 def read_puzzle_input(filename):
@@ -7,26 +9,70 @@ def read_puzzle_input(filename):
     return data
 
 
-def parse_data(data: str):
-    return data.strip().split('\n')
+@dataclass
+class Range:
+    destination_range_start: int
+    source_range_start: int
+    range_length: int
+
+
+@dataclass
+class AlmanacMap:
+    name: str
+    ranges: list[Range] = field(default_factory=list)
+
+
+def parse_data(data: str) -> (list[int], list[AlmanacMap]):
+    data = data.strip().split('\n\n')
+    seeds = [int(x) for x in data[0].split(' ') if x.isnumeric()]
+    almanac_maps = []
+    for map_text in data[1:]:
+        map_text = map_text.split('\n')
+        map_name = map_text[0].split(' ')[0]
+        almanac_map = AlmanacMap(map_name)
+        almanac_maps.append(almanac_map)
+        for row in map_text[1:]:
+            row = row.split(' ')
+            almanac_map.ranges.append(Range(int(row[0]), int(row[1]), int(row[2])))
+
+    return seeds, almanac_maps
+
+
+def follow_map(n, almanac_map: AlmanacMap):
+    for r in almanac_map.ranges:
+        if r.source_range_start <= n < r.source_range_start + r.range_length:
+            return r.destination_range_start + (n - r.source_range_start)
+    return n
+
+
+def follow_maps(seed, almanac_maps) -> int:
+    n = seed
+    for almanac_map in almanac_maps:
+        n = follow_map(n, almanac_map)
+    return n
 
 
 def part_one(filename):
     data = read_puzzle_input(filename)
-    cards = parse_data(data)
-    return -1
+    seeds, almanac_maps = parse_data(data)
+    lowest_location = math.inf
+    for seed in seeds:
+        location = follow_maps(seed, almanac_maps)
+        if location < lowest_location:
+            lowest_location = location
+    return lowest_location
 
 
 def part_two(filename):
     data = read_puzzle_input(filename)
-    cards = parse_data(data)
+    seeds, almanac_maps = parse_data(data)
     return -1
 
 
 class Test(unittest.TestCase):
     def test_part_one(self):
         self.assertEqual(-1, part_one('Day_05_input.txt'))
-        self.assertEqual(-1, part_one('Day_05_short_input.txt'))
+        self.assertEqual(35, part_one('Day_05_short_input.txt'))
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_05_input.txt'))
