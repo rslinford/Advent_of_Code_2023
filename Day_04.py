@@ -36,10 +36,21 @@ def parse_data(data: str) -> list[Card]:
     return cards
 
 
+def score_card(card):
+    count = 0
+    for n in card.winning_numbers:
+        if n in card.numbers_owned:
+            count += 1
+    return 2 ** (count - 1) if count > 0 else 0
+
+
 def part_one(filename):
     data = read_puzzle_input(filename)
     cards = parse_data(data)
-    return -1
+    total = 0
+    for card in cards:
+        total += score_card(card)
+    return total
 
 
 def part_two(filename):
@@ -50,8 +61,8 @@ def part_two(filename):
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        self.assertEqual(-1, part_one('Day_04_input.txt'))
-        self.assertEqual(-1, part_one('Day_04_short_input.txt'))
+        self.assertEqual(18519, part_one('Day_04_input.txt'))
+        self.assertEqual(13, part_one('Day_04_short_input.txt'))
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_04_input.txt'))
@@ -70,3 +81,13 @@ class Test(unittest.TestCase):
         self.assertEqual(72, cards[5].winning_numbers[4])
         self.assertEqual(74, cards[5].numbers_owned[0])
         self.assertEqual(11, cards[5].numbers_owned[7])
+
+    def test_score_card(self):
+        data = read_puzzle_input('Day_04_short_input.txt')
+        cards = parse_data(data)
+        self.assertEqual(8, score_card(cards[0]))
+        self.assertEqual(2, score_card(cards[1]))
+        self.assertEqual(2, score_card(cards[2]))
+        self.assertEqual(1, score_card(cards[3]))
+        self.assertEqual(0, score_card(cards[4]))
+        self.assertEqual(0, score_card(cards[5]))
