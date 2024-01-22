@@ -2,6 +2,8 @@ import re
 import unittest
 from dataclasses import dataclass, field
 
+import numpy as np
+
 
 def read_puzzle_input(filename):
     with open(filename, 'r') as f:
@@ -36,11 +38,16 @@ def parse_data(data: str) -> list[Card]:
     return cards
 
 
-def score_card(card):
+def count_matches(card):
     count = 0
     for n in card.winning_numbers:
         if n in card.numbers_owned:
             count += 1
+    return count
+
+
+def score_card(card):
+    count = count_matches(card)
     return 2 ** (count - 1) if count > 0 else 0
 
 
@@ -56,7 +63,12 @@ def part_one(filename):
 def part_two(filename):
     data = read_puzzle_input(filename)
     cards = parse_data(data)
-    return -1
+    counts = np.ones(len(cards), dtype=int)
+    for card in cards:
+        n = count_matches(card)
+        for i in range(card.id, card.id + n):
+            counts[i] += counts[card.id - 1]
+    return sum(counts)
 
 
 class Test(unittest.TestCase):
@@ -66,7 +78,7 @@ class Test(unittest.TestCase):
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_04_input.txt'))
-        self.assertEqual(-1, part_two('Day_04_short_input.txt'))
+        self.assertEqual(30, part_two('Day_04_short_input.txt'))
 
     def test_parse_data(self):
         data = read_puzzle_input('Day_04_short_input.txt')
