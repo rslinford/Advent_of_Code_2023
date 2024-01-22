@@ -78,10 +78,24 @@ def part_one(filename):
     return sum_of_part_numbers
 
 
+def find_adjacent_part_numbers(schematic, x, y) -> list[PartNumber]:
+    part_numbers = []
+    return part_numbers
+
+
 def part_two(filename):
     data = read_puzzle_input(filename)
     schematic = parse_data(data)
-    return -1
+    total = 0
+    for y, row in enumerate(schematic):
+        for x, c in enumerate(row):
+            if x == '*':
+                part_numbers = find_adjacent_part_numbers(schematic, x, y)
+                assert len(part_numbers) < 3
+                if len(part_numbers) < 2:
+                    continue
+                total += int(part_numbers[0].number) * int(part_numbers[1].number)
+    return total
 
 
 class Test(unittest.TestCase):
