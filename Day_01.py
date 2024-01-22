@@ -62,10 +62,10 @@ def part_two(filename):
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        self.assertEqual(part_one('Day_01_input.txt'), 56397)
-        self.assertEqual(part_one('Day_01_short_input.txt'), 142)
+        self.assertEqual(56397, part_one('Day_01_input.txt'))
+        self.assertEqual(142, part_one('Day_01_short_input.txt'))
 
     def test_part_two(self):
         # self.assertEqual(part_two('Day_01_input.txt'), -1)
-        self.assertEqual(part_two('Day_01_input.txt'), 55701)
-        self.assertEqual(part_two('Day_01_short_input_02.txt'), 281)
+        self.assertEqual(55701, part_two('Day_01_input.txt'))
+        self.assertEqual(281, part_two('Day_01_short_input_02.txt'))
