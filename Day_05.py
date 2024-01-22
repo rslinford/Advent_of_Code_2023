@@ -63,17 +63,39 @@ def part_one(filename):
     return lowest_location
 
 
+@dataclass
+class SeedRange:
+    start_seed: int
+    range_length: int
+
+
+def make_seed_ranges(seeds) -> list[SeedRange]:
+    seed_ranges = []
+    for i in range(0, len(seeds), 2):
+        seed_ranges.append(SeedRange(seeds[i], seeds[i + 1]))
+    return seed_ranges
+
+
 def part_two(filename):
     data = read_puzzle_input(filename)
     seeds, almanac_maps = parse_data(data)
-    return -1
+    lowest_location = math.inf
+    seed_ranges = make_seed_ranges(seeds)
+    for seed_range in seed_ranges:
+        print(f'Working on {seed_range}')
+        for seed in range(seed_range.start_seed, seed_range.start_seed + seed_range.range_length):
+            location = follow_maps(seed, almanac_maps)
+            if location < lowest_location:
+                lowest_location = location
+
+    return lowest_location
 
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        self.assertEqual(-1, part_one('Day_05_input.txt'))
+        self.assertEqual(175622908, part_one('Day_05_input.txt'))
         self.assertEqual(35, part_one('Day_05_short_input.txt'))
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_05_input.txt'))
-        self.assertEqual(-1, part_two('Day_05_short_input.txt'))
+        self.assertEqual(46, part_two('Day_05_short_input.txt'))
