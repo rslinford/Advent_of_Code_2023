@@ -5,7 +5,10 @@ from enum import Enum, auto
 
 import numpy as np
 
-CARD_ORDER = {'A': 12, 'K': 11, 'Q': 10, 'J': 9, 'T': 8, '9': 7, '8': 6, '7': 5, '6': 4, '5': 3, '4': 2, '3': 1, '2': 0}
+CARD_ORDER_PART_ONE = {'A': 12, 'K': 11, 'Q': 10, 'J': 9, 'T': 8, '9': 7, '8': 6, '7': 5, '6': 4, '5': 3, '4': 2,
+                       '3': 1, '2': 0}
+CARD_ORDER_PART_TWO = {'A': 12, 'K': 11, 'Q': 10, 'T': 9, '9': 8, '8': 7, '7': 6, '6': 5, '5': 4, '4': 3, '3': 2,
+                       '2': 1, 'J': 0}
 
 
 class HandType(Enum):
@@ -29,6 +32,7 @@ class HandType(Enum):
 class Hand:
     cards: str
     bid: int
+    part: dict
     type: HandType = None
 
     def __lt__(self, other):
@@ -38,7 +42,7 @@ class Hand:
             if self.type != other.type:
                 return self.type < other.type
             for i in range(len(self.cards)):
-                n = compare_cards(self.cards[i], other.cards[i])
+                n = compare_cards(self.cards[i], other.cards[i], self.part)
                 if n == 0:
                     continue
                 elif n == -1:
@@ -53,7 +57,7 @@ class Hand:
         self.categorize_hand()
 
     def categorize_hand(self):
-        counts = count_cards(self)
+        counts = count_cards(self, self.part)
         max_count = max(counts)
         if max_count == 5:
             self.type = HandType.FIVE_OF_A_KIND
@@ -83,9 +87,9 @@ class Hand:
         assert False
 
 
-def compare_cards(card1, card2):
-    value1 = CARD_ORDER[card1]
-    value2 = CARD_ORDER[card2]
+def compare_cards(card1, card2, part: dict):
+    value1 = part[card1]
+    value2 = part[card2]
     if value1 > value2:
         return 1
     elif value1 == value2:
@@ -100,22 +104,22 @@ def read_puzzle_input(filename):
     return data
 
 
-def parse_data(data: str) -> list[Hand]:
+def parse_data(data: str, part: dict) -> list[Hand]:
     data = data.split('\n')
     hands = []
     for row in data:
         result = re.search(r'(\w+) (\d+)', row)
         cards = result.group(1)
         bid = result.group(2)
-        hands.append(Hand(cards, int(bid)))
+        hands.append(Hand(cards, int(bid), part))
 
     return hands
 
 
-def count_cards(hand):
-    counts = np.zeros(len(CARD_ORDER), dtype=int)
+def count_cards(hand, part: dict):
+    counts = np.zeros(len(part), dtype=int)
     for card in hand.cards:
-        counts[CARD_ORDER[card]] += 1
+        counts[part[card]] += 1
     return counts
 
 
@@ -128,7 +132,7 @@ def score_hands(hands: list[Hand]):
 
 def part_one(filename):
     data = read_puzzle_input(filename)
-    hands = parse_data(data)
+    hands = parse_data(data, CARD_ORDER_PART_ONE)
     hands.sort()
     score = score_hands(hands)
     return score
@@ -136,8 +140,10 @@ def part_one(filename):
 
 def part_two(filename):
     data = read_puzzle_input(filename)
-    hands = parse_data(data)
-    return -1
+    hands = parse_data(data, CARD_ORDER_PART_TWO)
+    hands.sort()
+    score = score_hands(hands)
+    return score
 
 
 class Test(unittest.TestCase):
@@ -146,39 +152,39 @@ class Test(unittest.TestCase):
         self.assertEqual(6440, part_one('Day_07_short_input.txt'))
 
     def test_part_two(self):
-        self.assertEqual(-1, part_two('Day_07_input.txt'))
-        self.assertEqual(-1, part_two('Day_07_short_input.txt'))
+        # self.assertEqual(-1, part_two('Day_07_input.txt'))
+        self.assertEqual(5905, part_two('Day_07_short_input.txt'))
 
     def test_compare_cards(self):
-        self.assertEqual(1, compare_cards('A', 'K'))
-        self.assertEqual(0, compare_cards('A', 'A'))
-        self.assertEqual(-1, compare_cards('K', 'A'))
+        self.assertEqual(1, compare_cards('A', 'K', CARD_ORDER_PART_ONE))
+        self.assertEqual(0, compare_cards('A', 'A', CARD_ORDER_PART_ONE))
+        self.assertEqual(-1, compare_cards('K', 'A', CARD_ORDER_PART_ONE))
 
     def test_categorize_hands(self):
         data = read_puzzle_input('Day_07_short_input.txt')
-        hands = parse_data(data)
+        hands = parse_data(data, CARD_ORDER_PART_ONE)
         self.assertEqual(HandType.ONE_PAIR, hands[0].type)
         self.assertEqual(HandType.THREE_OF_A_KIND, hands[1].type)
         self.assertEqual(HandType.TWO_PAIR, hands[2].type)
-        hand = Hand('TTTTT', 123)
+        hand = Hand('TTTTT', 123, CARD_ORDER_PART_ONE)
         self.assertEqual(HandType.FIVE_OF_A_KIND, hand.type)
-        hand = Hand('T2222', 123)
+        hand = Hand('T2222', 123, CARD_ORDER_PART_ONE)
         self.assertEqual(HandType.FOUR_OF_A_KIND, hand.type)
-        hand = Hand('55599', 123)
+        hand = Hand('55599', 123, CARD_ORDER_PART_ONE)
         self.assertEqual(HandType.FULL_HOUSE, hand.type)
-        hand = Hand('89TJQ', 123)
+        hand = Hand('89TJQ', 123, CARD_ORDER_PART_ONE)
         self.assertEqual(HandType.HIGH_CARD, hand.type)
 
     def test_less_than(self):
-        h1 = Hand('TTTTT', 123)
-        h2 = Hand('77777', 123)
+        h1 = Hand('TTTTT', 123, CARD_ORDER_PART_ONE)
+        h2 = Hand('77777', 123, CARD_ORDER_PART_ONE)
         self.assertTrue(h1 > h2)
-        h1 = Hand('23456', 123)
-        h2 = Hand('23457', 123)
+        h1 = Hand('23456', 123, CARD_ORDER_PART_ONE)
+        h2 = Hand('23457', 123, CARD_ORDER_PART_ONE)
         self.assertTrue(h1 < h2)
-        h1 = Hand('44552', 123)
-        h2 = Hand('99234', 123)
+        h1 = Hand('44552', 123, CARD_ORDER_PART_ONE)
+        h2 = Hand('99234', 123, CARD_ORDER_PART_ONE)
         self.assertTrue(h1 > h2)
-        h1 = Hand('98765', 123)
-        h2 = Hand('98765', 123)
+        h1 = Hand('98765', 123, CARD_ORDER_PART_ONE)
+        h2 = Hand('98765', 123, CARD_ORDER_PART_ONE)
         self.assertTrue(h1 == h2)
