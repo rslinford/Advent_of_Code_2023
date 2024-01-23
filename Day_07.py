@@ -119,11 +119,19 @@ def count_cards(hand):
     return counts
 
 
+def score_hands(hands: list[Hand]):
+    score = 0
+    for i, hand in enumerate(hands):
+        score += (i + 1) * hand.bid
+    return score
+
+
 def part_one(filename):
     data = read_puzzle_input(filename)
     hands = parse_data(data)
     hands.sort()
-    return -1
+    score = score_hands(hands)
+    return score
 
 
 def part_two(filename):
@@ -134,8 +142,8 @@ def part_two(filename):
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        # self.assertEqual(-1, part_one('Day_07_input.txt'))
-        self.assertEqual(-1, part_one('Day_07_short_input.txt'))
+        self.assertEqual(250602641, part_one('Day_07_input.txt'))
+        self.assertEqual(6440, part_one('Day_07_short_input.txt'))
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_07_input.txt'))
