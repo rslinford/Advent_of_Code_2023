@@ -29,7 +29,7 @@ def parse_data(data: str) -> (str, dict[str, Node]):
     return directions, nodes
 
 
-def follow_directions(directions, nodes: dict[str, Node]):
+def follow_directions_one(directions, nodes: dict[str, Node]):
     steps_taken = 0
     current_node = nodes['AAA']
     while True:
@@ -47,17 +47,51 @@ def follow_directions(directions, nodes: dict[str, Node]):
     return steps_taken
 
 
+def all_nodes_ending_in_a(nodes: dict[str, Node]):
+    nodes_ending_in_a = []
+    for node in nodes.values():
+        if node.name[-1] == 'A':
+            nodes_ending_in_a.append(node)
+    return nodes_ending_in_a
+
+
+def follow_directions_two(directions, nodes: dict[str, Node]):
+    steps_taken = 0
+    current_nodes = all_nodes_ending_in_a(nodes)
+    while True:
+        direction = directions[steps_taken % len(directions)]
+        match direction:
+            case 'L':
+                for i in range(len(current_nodes)):
+                    current_nodes[i] = nodes[current_nodes[i].left]
+            case 'R':
+                for i in range(len(current_nodes)):
+                    current_nodes[i] = nodes[current_nodes[i].right]
+            case _:
+                assert False
+        steps_taken += 1
+        all_z = True
+        for node in current_nodes:
+            if node.name[-1] != 'Z':
+                all_z = False
+                break
+        if all_z:
+            break
+    return steps_taken
+
+
 def part_one(filename):
     data = read_puzzle_input(filename)
     directions, nodes = parse_data(data)
-    steps_taken = follow_directions(directions, nodes)
+    steps_taken = follow_directions_one(directions, nodes)
     return steps_taken
 
 
 def part_two(filename):
     data = read_puzzle_input(filename)
-    hands = parse_data(data)
-    return -1
+    directions, nodes = parse_data(data)
+    steps_taken = follow_directions_two(directions, nodes)
+    return steps_taken
 
 
 class Test(unittest.TestCase):
@@ -68,4 +102,4 @@ class Test(unittest.TestCase):
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_08_input.txt'))
-        self.assertEqual(-1, part_two('Day_08_short_input.txt'))
+        self.assertEqual(6, part_two('Day_08_short_input_03.txt'))
