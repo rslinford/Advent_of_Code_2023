@@ -33,6 +33,16 @@ def extrapolate_value(sequence):
     return sequences[0][-1]
 
 
+def extrapolate_value_backwards(sequence):
+    sequences = [sequence]
+    while not all(x == 0 for x in sequences[-1]):
+        sequences.append(calculate_next_sequence(sequences[-1]))
+    sequences[-1].insert(0, 0)
+    for i in range(len(sequences) - 1, -1, -1):
+        sequences[i - 1].insert(0, sequences[i - 1][0] - sequences[i][0])
+    return sequences[0][0]
+
+
 def part_one(filename):
     data = read_puzzle_input(filename)
     data = parse_data(data)
@@ -46,7 +56,11 @@ def part_one(filename):
 def part_two(filename):
     data = read_puzzle_input(filename)
     data = parse_data(data)
-    return -1
+    total = 0
+    for row in data:
+        extrapolated_value = extrapolate_value_backwards(row)
+        total += extrapolated_value
+    return total
 
 
 class Test(unittest.TestCase):
@@ -55,5 +69,5 @@ class Test(unittest.TestCase):
         self.assertEqual(114, part_one('Day_09_short_input.txt'))
 
     def test_part_two(self):
-        self.assertEqual(-1, part_two('Day_09_input.txt'))
-        self.assertEqual(-1, part_two('Day_09_short_input.txt'))
+        self.assertEqual(1005, part_two('Day_09_input.txt'))
+        self.assertEqual(2, part_two('Day_09_short_input.txt'))
