@@ -49,6 +49,39 @@ class Hand:
 
         return NotImplemented
 
+    def __post_init__(self):
+        self.categorize_hand()
+
+    def categorize_hand(self):
+        counts = count_cards(self)
+        max_count = max(counts)
+        if max_count == 5:
+            self.type = HandType.FIVE_OF_A_KIND
+            return
+        if max_count == 4:
+            self.type = HandType.FOUR_OF_A_KIND
+            return
+        if max_count == 1:
+            self.type = HandType.HIGH_CARD
+            return
+        number_of_pairs = 0
+        for count in counts:
+            if count == 2:
+                number_of_pairs += 1
+        if number_of_pairs == 2:
+            self.type = HandType.TWO_PAIR
+            return
+        if max_count == 3 and number_of_pairs == 1:
+            self.type = HandType.FULL_HOUSE
+            return
+        if max_count == 3 and number_of_pairs == 0:
+            self.type = HandType.THREE_OF_A_KIND
+            return
+        if number_of_pairs == 1:
+            self.type = HandType.ONE_PAIR
+            return
+        assert False
+
 
 def compare_cards(card1, card2):
     value1 = CARD_ORDER[card1]
@@ -86,49 +119,10 @@ def count_cards(hand):
     return counts
 
 
-def categorize_hand(hand: Hand):
-    counts = count_cards(hand)
-    max_count = max(counts)
-    if max_count == 5:
-        hand.type = HandType.FIVE_OF_A_KIND
-        return
-    if max_count == 4:
-        hand.type = HandType.FOUR_OF_A_KIND
-        return
-    if max_count == 1:
-        hand.type = HandType.HIGH_CARD
-        return
-    number_of_pairs = 0
-    for count in counts:
-        if count == 2:
-            number_of_pairs += 1
-    if number_of_pairs == 2:
-        hand.type = HandType.TWO_PAIR
-        return
-    if max_count == 3 and number_of_pairs == 1:
-        hand.type = HandType.FULL_HOUSE
-        return
-    if max_count == 3 and number_of_pairs == 0:
-        hand.type = HandType.THREE_OF_A_KIND
-        return
-    if number_of_pairs == 1:
-        hand.type = HandType.ONE_PAIR
-        return
-    assert False
-
-
-def categorize_hands(hands):
-    for hand in hands:
-        categorize_hand(hand)
-
-
 def part_one(filename):
     data = read_puzzle_input(filename)
     hands = parse_data(data)
-    categorize_hands(hands)
-    print(hands)
     hands.sort()
-    print(hands)
     return -1
 
 
@@ -155,19 +149,28 @@ class Test(unittest.TestCase):
     def test_categorize_hands(self):
         data = read_puzzle_input('Day_07_short_input.txt')
         hands = parse_data(data)
-        categorize_hands(hands)
         self.assertEqual(HandType.ONE_PAIR, hands[0].type)
         self.assertEqual(HandType.THREE_OF_A_KIND, hands[1].type)
         self.assertEqual(HandType.TWO_PAIR, hands[2].type)
         hand = Hand('TTTTT', 123)
-        categorize_hand(hand)
         self.assertEqual(HandType.FIVE_OF_A_KIND, hand.type)
         hand = Hand('T2222', 123)
-        categorize_hand(hand)
         self.assertEqual(HandType.FOUR_OF_A_KIND, hand.type)
         hand = Hand('55599', 123)
-        categorize_hand(hand)
         self.assertEqual(HandType.FULL_HOUSE, hand.type)
         hand = Hand('89TJQ', 123)
-        categorize_hand(hand)
         self.assertEqual(HandType.HIGH_CARD, hand.type)
+
+    def test_less_than(self):
+        h1 = Hand('TTTTT', 123)
+        h2 = Hand('77777', 123)
+        self.assertTrue(h1 > h2)
+        h1 = Hand('23456', 123)
+        h2 = Hand('23457', 123)
+        self.assertTrue(h1 < h2)
+        h1 = Hand('44552', 123)
+        h2 = Hand('99234', 123)
+        self.assertTrue(h1 > h2)
+        h1 = Hand('98765', 123)
+        h2 = Hand('98765', 123)
+        self.assertTrue(h1 == h2)
