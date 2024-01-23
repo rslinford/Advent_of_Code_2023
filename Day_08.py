@@ -56,28 +56,24 @@ def all_nodes_ending_in_a(nodes: dict[str, Node]):
 
 
 def follow_directions_two(directions, nodes: dict[str, Node]):
-    steps_taken = 0
     current_nodes = all_nodes_ending_in_a(nodes)
-    while True:
-        direction = directions[steps_taken % len(directions)]
-        match direction:
-            case 'L':
-                for i in range(len(current_nodes)):
-                    current_nodes[i] = nodes[current_nodes[i].left]
-            case 'R':
-                for i in range(len(current_nodes)):
-                    current_nodes[i] = nodes[current_nodes[i].right]
-            case _:
-                assert False
-        steps_taken += 1
-        all_z = True
-        for node in current_nodes:
-            if node.name[-1] != 'Z':
-                all_z = False
+    periods = []
+    for node in current_nodes:
+        steps_taken = 0
+        while True:
+            direction = directions[steps_taken % len(directions)]
+            match direction:
+                case 'L':
+                    node = nodes[node.left]
+                case 'R':
+                    node = nodes[node.right]
+                case _:
+                    assert False
+            steps_taken += 1
+            if node.name[-1] == 'Z':
+                periods.append(steps_taken)
                 break
-        if all_z:
-            break
-    return steps_taken
+    return np.lcm.reduce(periods)
 
 
 def part_one(filename):
@@ -101,5 +97,6 @@ class Test(unittest.TestCase):
         self.assertEqual(6, part_one('Day_08_short_input_02.txt'))
 
     def test_part_two(self):
-        self.assertEqual(-1, part_two('Day_08_input.txt'))
+        # Wrong answer: 1558290119
+        self.assertEqual(14449445933179, part_two('Day_08_input.txt'))
         self.assertEqual(6, part_two('Day_08_short_input_03.txt'))
