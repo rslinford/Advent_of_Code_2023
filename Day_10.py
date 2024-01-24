@@ -64,53 +64,78 @@ def find_the_s(grid):
     assert False
 
 
-def print_grid(grid, x_highlight, y_highlight):
+def print_grid(grid, x_highlight, y_highlight, color=Fore.RED):
     for y in range(grid.shape[0]):
         for x in range(grid.shape[1]):
             if x == x_highlight and y == y_highlight:
-                print(Fore.RED + str(grid[y][x]), end='')
+                print(color + str(grid[y][x]), end='')
             else:
                 print(Fore.WHITE + str(grid[y][x]), end='')
         print()
 
 
 def follow_loop(grid, x, y):
-    assert grid[y][x] == 'S'
-    print_grid(grid, x, y)
-    d = possible_directions(grid, x, y)
-    assert len(d) == 2
-    heading = d[1]
-    opposite_heading = None
+    x1, y1 = x, y
+    x2, y2 = x, y
+    assert grid[y1][x1] == 'S'
+    # print_grid(grid, x1, y1)
+    d1 = possible_directions(grid, x1, y1)
+    assert len(d1) == 2
+    heading1 = d1[0]
+    heading2 = d1[1]
+    opposite_heading1 = None
+    opposite_heading2 = None
     steps_taken = 0
     while True:
-        match heading:
+        match heading1:
             case Direction.NORTH:
-                y -= 1
-                opposite_heading = Direction.SOUTH
+                y1 -= 1
+                opposite_heading1 = Direction.SOUTH
             case Direction.SOUTH:
-                y += 1
-                opposite_heading = Direction.NORTH
+                y1 += 1
+                opposite_heading1 = Direction.NORTH
             case Direction.EAST:
-                x += 1
-                opposite_heading = Direction.WEST
+                x1 += 1
+                opposite_heading1 = Direction.WEST
             case Direction.WEST:
-                x -= 1
-                opposite_heading = Direction.EAST
+                x1 -= 1
+                opposite_heading1 = Direction.EAST
+        match heading2:
+            case Direction.NORTH:
+                y2 -= 1
+                opposite_heading2 = Direction.SOUTH
+            case Direction.SOUTH:
+                y2 += 1
+                opposite_heading2 = Direction.NORTH
+            case Direction.EAST:
+                x2 += 1
+                opposite_heading2 = Direction.WEST
+            case Direction.WEST:
+                x2 -= 1
+                opposite_heading2 = Direction.EAST
         steps_taken += 1
-        print_grid(grid, x, y)
-        d = possible_directions(grid, x, y)
-        if opposite_heading in d:
-            d.remove(opposite_heading)
-        heading = d[0]
-
+        print_grid(grid, x1, y1, color=Fore.BLUE)
+        print()
+        print_grid(grid, x2, y2, color=Fore.RED)
+        print()
+        print()
+        if x1 == x2 and y1 == y2:
+            return steps_taken
+        d1 = possible_directions(grid, x1, y1)
+        if opposite_heading1 in d1:
+            d1.remove(opposite_heading1)
+        heading1 = d1[0]
+        d2 = possible_directions(grid, x2, y2)
+        if opposite_heading2 in d2:
+            d2.remove(opposite_heading2)
+        heading2 = d2[0]
 
 
 def part_one(filename):
     data = read_puzzle_input(filename)
     grid = parse_data(data)
     x, y = find_the_s(grid)
-    follow_loop(grid, x, y)
-    return -1
+    return follow_loop(grid, x, y)
 
 
 def part_two(filename):
@@ -122,7 +147,9 @@ def part_two(filename):
 class Test(unittest.TestCase):
     def test_part_one(self):
         # self.assertEqual(-1, part_one('Day_10_input.txt'))
-        self.assertEqual(-1, part_one('Day_10_short_input.txt'))
+        # self.assertEqual(4, part_one('Day_10_short_input.txt'))
+        # self.assertEqual(8, part_one('Day_10_short_input_02.txt'))
+        self.assertEqual(4, part_one('Day_10_short_input_03.txt'))
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_10_input.txt'))
