@@ -8,12 +8,18 @@ def read_puzzle_input(filename):
 
 
 def parse_data(data: str):
-    return data.split(',')
+    return [list(row) for row in data.split('\n')]
+
+
+def contraption_to_string(contraption):
+    s = [''.join(a) for a in contraption]
+    return '\n'.join(s)
 
 
 def part_one(filename):
     data = read_puzzle_input(filename)
-    data = parse_data(data)
+    contraption = parse_data(data)
+    print(contraption_to_string(contraption))
     return -1
 
 
@@ -25,7 +31,7 @@ def part_two(filename):
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        self.assertEqual(-1, part_one('Day_16_input.txt'))
+        # self.assertEqual(-1, part_one('Day_16_input.txt'))
         self.assertEqual(-1, part_one('Day_16_short_input.txt'))
 
     def test_part_two(self):
