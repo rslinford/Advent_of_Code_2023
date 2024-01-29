@@ -57,12 +57,41 @@ def find_min_max(cubes):
     return min_x, max_x, min_y, max_y
 
 
+def print_cubes(cubes):
+    min_x, max_x, min_y, max_y = find_min_max(cubes)
+    for y in range(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            in_trench = (x, y) in cubes.keys()
+            if in_trench:
+                print('#', end='')
+            else:
+                print('.', end='')
+        print()
+
+
+def dig_out_interior(cubes):
+    min_x, max_x, min_y, max_y = find_min_max(cubes)
+    for y in range(min_y, max_y + 1):
+        prev_in_trench = False
+        interior = False
+        for x in range(min_x, max_x + 1):
+            in_trench = (x, y) in cubes.keys()
+            if not in_trench and prev_in_trench:
+                interior = not interior
+            if interior and not in_trench:
+                cubes[(x, y)] = 'ffffff'
+            prev_in_trench = in_trench
+
+
 def part_one(filename):
     data = read_puzzle_input(filename)
     dig_plan = parse_data(data)
     cubes = follow_dig_plan(dig_plan)
-    min_x, max_x, min_y, max_y = find_min_max(cubes)
-    return -1
+    print_cubes(cubes)
+    dig_out_interior(cubes)
+    print()
+    print_cubes(cubes)
+    return len(cubes)
 
 
 def part_two(filename):
@@ -73,6 +102,7 @@ def part_two(filename):
 
 class Test(unittest.TestCase):
     def test_part_one(self):
+        # Wrong answer: 78208
         # self.assertEqual(-1, part_one('Day_18_input.txt'))
         self.assertEqual(62, part_one('Day_18_short_input.txt'))
 
