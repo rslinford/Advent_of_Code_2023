@@ -1,20 +1,7 @@
+import re
 import unittest
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto
-
-"""
-Flip-flop modules (prefix %) are either on or off; they are initially off. 
-If a flip-flop module receives a high pulse, it is ignored and nothing happens. 
-However, if a flip-flop module receives a low pulse, it flips between on and off. 
-If it was off, it turns on and sends a high pulse. If it was on, it turns off and 
-sends a low pulse.
-
-Conjunction modules (prefix &) remember the type of the most recent pulse received 
-from each of their connected input modules; they initially default to remembering a 
-low pulse for each input. When a pulse is received, the conjunction module first updates 
-its memory for that input. Then, if it remembers high pulses for all inputs, it sends a 
-low pulse; otherwise, it sends a high pulse.
-"""
 
 
 def read_puzzle_input(filename):
@@ -24,8 +11,23 @@ def read_puzzle_input(filename):
 
 
 def parse_data(data: str):
-    data = data.split('\n')
-    return data
+    modules = {}
+    for row in data.split('\n'):
+        result = re.search(r'([%&]?\w+) -> (.*)', row)
+        name = result.group(1)
+        targets = result.group(2)
+        targets = [a.strip() for a in targets.split(',')]
+        if name == 'broadcaster':
+            modules[name] = Broadcaster(name, targets)
+            modules['button'] = Button('button', [name])
+        elif '%' in name:
+            modules[name[1:]] = FlipFlop(name[1:], targets)
+        elif '&' in name:
+            modules[name[1:]] = Conjunction(name[1:], targets)
+        else:
+            assert False
+
+    return modules
 
 
 class PulseType(Enum):
@@ -40,17 +42,20 @@ class Pulse:
     target: str
 
 
-class ModuleType(Enum):
-    FLIP_FLOP = auto()
-    CONJUNCTION = auto()
-    BROADCASTER = auto()
-    BUTTON = auto()
+# class ModuleType(Enum):
+#     FLIP_FLOP = auto()
+#     CONJUNCTION = auto()
+#     BROADCASTER = auto()
+#     BUTTON = auto()
 
 
-@dataclass
 class Module:
-    type: ModuleType
-    name: str
+    env = {}
+
+    def __init__(self, name, targets):
+        self.name = name
+        self.targets = targets
+        self.env[self.name] = self
 
 
 class Bit:
@@ -62,23 +67,35 @@ class FlipFlop(Module):
     state: Bit
 
 
+class Conjunction(Module):
+    pulse_memory: dict = field(default_factory=dict)
+
+
+class Broadcaster(Module):
+    pass
+
+
+class Button(Module):
+    pass
+
+
 def part_one(filename):
     data = read_puzzle_input(filename)
-    data = parse_data(data)
+    modules = parse_data(data)
     return -1
 
 
 def part_two(filename):
     data = read_puzzle_input(filename)
-    data = parse_data(data)
+    modules = parse_data(data)
     return -1
 
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        self.assertEqual(-1, part_one('Day_19_input.txt'))
-        self.assertEqual(-1, part_one('Day_19_short_input.txt'))
+        # self.assertEqual(-1, part_one('Day_20_input.txt'))
+        self.assertEqual(-1, part_one('Day_20_short_input.txt'))
 
     def test_part_two(self):
-        self.assertEqual(-1, part_two('Day_19_input.txt'))
-        self.assertEqual(-1, part_two('Day_19_short_input.txt'))
+        self.assertEqual(-1, part_two('Day_20_input.txt'))
+        self.assertEqual(-1, part_two('Day_20_short_input.txt'))
