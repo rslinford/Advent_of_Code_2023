@@ -109,5 +109,5 @@ class Test(unittest.TestCase):
         self.assertEqual(19114, part_one('Day_19_short_input.txt'))
 
     def test_part_two(self):
-        self.assertEqual(-1, part_two('Day_19_input.txt'))
+        self.assertEqual(136146366355609, part_two('Day_19_input.txt'))
         self.assertEqual(-1, part_two('Day_19_short_input.txt'))
