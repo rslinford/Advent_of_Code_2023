@@ -1,0 +1,8 @@
+button -PulseType.LOW-> broadcaster
+broadcaster -PulseType.LOW-> a
+a -PulseType.HIGH-> inv
+a -PulseType.HIGH-> con
+inv -PulseType.LOW-> b
+con -PulseType.LOW-> output **
+b -PulseType.HIGH-> con
+con -PulseType.LOW-> output
