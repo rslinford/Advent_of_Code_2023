@@ -31,9 +31,7 @@ def walk_a_step(grid, locations):
         for dx, dy in DIRS:
             x2 = x + dx
             y2 = y + dy
-            if x2 < 0 or x2 >= width or y2 < 0 or y2 >= height:
-                continue
-            if grid[y2][x2] == '.' or grid[y2][x2] == 'S':
+            if grid[y2 % height][x2 % width] == '.' or grid[y2 % height][x2 % width] == 'S':
                 new_locations.add((x2, y2))
     return new_locations
 
@@ -48,7 +46,7 @@ def print_grid(grid, locations):
         print()
 
 
-def part_one(filename, steps=64):
+def part_one(filename, steps):
     data = read_puzzle_input(filename)
     grid = parse_data(data)
     locations = {find_start(grid)}
@@ -60,17 +58,21 @@ def part_one(filename, steps=64):
     return len(locations)
 
 
-def part_two(filename):
+def part_two(filename, steps):
     data = read_puzzle_input(filename)
     grid = parse_data(data)
-    return -1
+    locations = {find_start(grid)}
+    for n in range(steps):
+        locations = walk_a_step(grid, locations)
+    return len(locations)
 
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        self.assertEqual(3600, part_one('Day_21_input.txt'), 64)
-        # self.assertEqual(16, part_one('Day_21_short_input.txt', 6))
+        self.assertEqual(3600, part_one('Day_21_input.txt', 64))
+        self.assertEqual(16, part_one('Day_21_short_input.txt', 6))
 
     def test_part_two(self):
-        self.assertEqual(-1, part_two('Day_21_input.txt'))
-        self.assertEqual(-1, part_two('Day_21_short_input.txt'))
+        # self.assertEqual(-1, part_two('Day_21_input.txt'), 26501365)
+        self.assertEqual(50, part_two('Day_21_short_input.txt', 10))
+        self.assertEqual(167004, part_two('Day_21_short_input.txt', 500))
