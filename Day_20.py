@@ -3,6 +3,7 @@ import unittest
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from enum import Enum, auto
+from graphviz import Digraph
 
 
 def read_puzzle_input(filename):
@@ -47,6 +48,7 @@ class Pulse:
 
 class Module:
     env = {}
+    pulse_counter = defaultdict(int)
 
     def __init__(self, name, targets):
         self.name = name
@@ -59,10 +61,15 @@ class NullModule(Module):
         super().__init__(name, [])
 
     def receive(self, pulse: Pulse):
-
         def callback():
             print(f'{pulse.source} -{pulse.type}-> {self.name}')
+            self.pulse_counter[pulse.type] += 1
             out_pulse = Pulse(self.name, None)
+
+            # self.targets will always be empty here. Why include the following then?
+            # Included for symetry with other callback functions. Inclusion of the
+            # yield statement changes how python handles the function even if the yield
+            # statement is never called here.
             for target in self.targets:
                 yield self.env[target].receive(out_pulse)
 
@@ -84,6 +91,7 @@ class FlipFlop(Module):
 
         def callback():
             print(f'{pulse.source} -{pulse.type}-> {self.name}')
+            self.pulse_counter[pulse.type] += 1
             if pulse.type == PulseType.HIGH:
                 return
             if self.state == Bit.ON:
@@ -92,7 +100,10 @@ class FlipFlop(Module):
                 out_pulse = Pulse(self.name, PulseType.HIGH)
             self.state = Bit.OFF if self.state == Bit.ON else Bit.ON
             for target in self.targets:
-                yield self.env[target].receive(out_pulse)
+                if target in self.targets:
+                    yield self.env[target].receive(out_pulse)
+                else:
+                    yield NullModule(target).receive(out_pulse)
 
         return callback
 
@@ -106,6 +117,7 @@ class Conjunction(Module):
 
         def callback():
             print(f'{pulse.source} -{pulse.type}-> {self.name}')
+            self.pulse_counter[pulse.type] += 1
             self.pulse_memory[pulse.source] = pulse.type
             if all(a == PulseType.HIGH for a in self.pulse_memory.values()):
                 out_pulse = Pulse(self.name, PulseType.LOW)
@@ -124,41 +136,53 @@ class Broadcaster(Module):
     def receive(self, pulse: Pulse):
         def callback():
             print(f'{pulse.source} -{pulse.type}-> {self.name}')
+            self.pulse_counter[pulse.type] += 1
             out_pulse = Pulse(self.name, pulse.type)
             for target in self.targets:
-                yield self.env[target].receive(out_pulse)
+                if target in self.env:
+                    yield self.env[target].receive(out_pulse)
+                else:
+                    yield NullModule(target).receive(out_pulse)
 
         return callback
 
 
-def push_the_button():
+def push_the_button(times=1000):
     q = deque()
-    q.append(Module.env['broadcaster'].receive(Pulse('button', PulseType.LOW)))
-    while q:
-        cb = q.popleft()
-        if cb is not None:
-            q.extend(cb())
+    for n in range(times):
+        print()
+        print(f'Pressing button {n + 1} of {times}')
+        q.append(Module.env['broadcaster'].receive(Pulse('button', PulseType.LOW)))
+        while q:
+            cb = q.popleft()
+            if cb is not None:
+                q.extend(cb())
+    return Module.pulse_counter[PulseType.LOW] * Module.pulse_counter[PulseType.HIGH]
 
 
 def part_one(filename):
     data = read_puzzle_input(filename)
     parse_data(data)
-    push_the_button()
-    return -1
+    return push_the_button(1000)
 
 
 def part_two(filename):
     data = read_puzzle_input(filename)
     parse_data(data)
+    dot = Digraph()
+    for module in Module.env.values():
+        for target in module.targets:
+            dot.edge(module.name, target)
+    dot.render('Day_20_graph.gv', view=True)
     return -1
 
 
 class Test(unittest.TestCase):
     def test_part_one(self):
-        # self.assertEqual(-1, part_one('Day_20_input.txt'))
-        # self.assertEqual(-1, part_one('Day_20_short_input.txt'))
-        self.assertEqual(-1, part_one('Day_20_short_input2.txt'))
+        self.assertEqual(898731036, part_one('Day_20_input.txt'))
+        # self.assertEqual(32000000, part_one('Day_20_short_input.txt'))
+        # self.assertEqual(11687500, part_one('Day_20_short_input2.txt'))
 
     def test_part_two(self):
         self.assertEqual(-1, part_two('Day_20_input.txt'))
-        self.assertEqual(-1, part_two('Day_20_short_input.txt'))
+        # self.assertEqual(-1, part_two('Day_20_short_input.txt'))
